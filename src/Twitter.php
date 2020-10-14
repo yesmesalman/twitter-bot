@@ -236,12 +236,13 @@ class Twitter
 	public function favThis($id)
 	{
 		try{
-			$this->request('favorites/create.json', 'POST', ['id'=>$id]);
+			$this->request('favorites/create.json', 'POST', ['id' => $id]);
+			return array(true);
 		}catch(Exception $e){
-		
-		    echo $e;
+			return array(false, $e->getMessage());
 		}
 	}
+
 	public function rtThis($id)
 	{
 		try{
