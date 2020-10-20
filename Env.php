@@ -11,7 +11,7 @@ class Env {
             "consumerSecret" => "",
             "accessToken" => "",
             "accessTokenSecret" => "",
-        ], //Shuwarmaa
+        ],
     );
 
     static $queryText = "follow everyone who likes this";

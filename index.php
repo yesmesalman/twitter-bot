@@ -31,10 +31,10 @@ foreach (Env::$twitterUsers as $index => $user) {
 		//Fav
 		$liked = $twitterBot->favThis($result->id);
 		if($liked[0]){
-			$text = Env::$twitterUsers[$index]["username"]." Like Success ".date("H:i:s d-M-Y"). " ".str_replace("[ID]", $result->id, Env::$tweetURL)." \n";
+			$text = Env::$twitterUsers[$index]["username"]." Like Success ".date("h:i:s A d-M-Y"). " ".str_replace("[ID]", $result->id, Env::$tweetURL)." \n";
 			$twitterBot->logEvent($text);
 		}else{
-			$text = Env::$twitterUsers[$index]["username"]." Like Failed ".date("H:i:s d-M-Y"). " ".str_replace("[ID]", $result->id, Env::$tweetURL)." (".$liked[1].") \n";
+			$text = Env::$twitterUsers[$index]["username"]." Like Failed ".date("h:i:s A d-M-Y"). " ".str_replace("[ID]", $result->id, Env::$tweetURL)." (".$liked[1].") \n";
 			$twitterBot->logEvent($text);
 		}
 	}
