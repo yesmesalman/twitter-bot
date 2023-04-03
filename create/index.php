@@ -11,13 +11,17 @@ set_time_limit(100);
 
 $wrongPassword = false;
 $success = false;
-if (isset($_POST['submit'])) {
+$defaultPassword = "admin!";
+
+if (isset($_POST['all_users'])) {
     $password = $_POST['password'];
     $tweet = $_POST['tweet'];
 
-    if ($password == "admin!") {
-        // record log
-        writeLog("==================================================================================");
+    if ($password != $defaultPassword) {
+        $wrongPassword = true;
+    } else {
+        writeLog("=========================");
+        writeLog("Creating tweet: '" . $tweet . "'");
 
         // Set your API keys and secrets
         $consumerKey = $app["consumer_key"];
@@ -33,15 +37,65 @@ if (isset($_POST['submit'])) {
 
             $twitter = new TwitterOAuth($consumerKey, $consumerSecret, $user['token'], $user['secret']);
             $twitter->post('statuses/update', ['status' => $tweet]);
-            $success = true;
 
+            writeLog("@" . $username . " [Ok] ");
+
+            $success = true;
             sleep(1);
         }
 
-        // record log
-        writeLog("==================================================================================");
-    } else {
+        writeLog("=========================");
+    }
+}
+
+
+if (isset($_POST['specific_user'])) {
+    $password = $_POST['password'];
+    $tweet = $_POST['tweet'];
+    $selected_username = $_POST['user'];
+
+    if ($password != $defaultPassword) {
         $wrongPassword = true;
+    } else {
+        writeLog("=========================");
+        writeLog("Creating tweet: '" . $tweet . "'");
+
+        $selectedUser = $users[$selected_username];
+
+        $consumerKey = $app["consumer_key"];
+        $consumerSecret = $app["consumer_secret"];
+
+        $twitter = new TwitterOAuth($consumerKey, $consumerSecret, $selectedUser['token'], $selectedUser['secret']);
+        $tweet = $twitter->post('statuses/update', ['status' => $tweet]);
+
+        if (isset($tweet) && isset($tweet->id)) {
+            writeLog("@" . $selected_username . " [Ok] ");
+
+            foreach ($users as $un => $u) {
+                if (!$u['create'] || $un == $selected_username) continue;
+
+                $twitter = new TwitterOAuth($consumerKey, $consumerSecret, $u['token'], $u['secret']);
+                $response = $twitter->post('statuses/retweet/' . $tweet->id);
+                if (isset($response->retweeted) && $response->retweeted == 1) {
+                    writeLog("@" . $un . "retweeted [Ok] ");
+                } else {
+                    writeLog("@" . $un . "retweeted [X] ");
+                }
+
+                $twitter = new TwitterOAuth($consumerKey, $consumerSecret, $u['token'], $u['secret']);
+                $tweet = $twitter->post('favorites/create', ['id' => $tweet->id]);
+                if (isset($tweet->favorited) && $tweet->favorited == 1) {
+                    writeLog("@" . $un . "liked [Ok] ");
+                } else {
+                    writeLog("@" . $un . "liked [X] ");
+                }
+
+                sleep(2);
+            }
+        }
+
+        $success = true;
+        writeLog("=========================");
     }
 }
 
@@ -59,38 +113,57 @@ if (isset($_POST['submit'])) {
 </head>
 
 <body>
-    <div class="container" style="padding-top: 100px">
+    <div class="container" style="padding-top: 60px">
         <div class="row">
-            <div class="col-md-3"></div>
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <?php
                 if ($wrongPassword) {
-                ?>
-                    <div class="alert alert-danger">
-                        <span>Wrong Password</span>
-                    </div>
-                <?php
+                    echo '<div class="alert alert-danger"><span>Wrong Password</span></div>';
                 }
                 ?>
                 <?php
                 if ($success) {
-                ?>
-                    <div class="alert alert-success">
-                        <span>Tweet has been posted!</span>
-                    </div>
-                <?php
+                    echo '<div class="alert alert-success"><span>Tweet has been posted!</span></div>';
                 }
                 ?>
+            </div>
+            <div class="col-md-6">
                 <form method="POST">
+                    <h4>Tweets for one person & retweet from other accounts</h4>
+                    <div class="form-group">
+                        <label for="tweet">Tweet</label>
+                        <textarea type="text" class="form-control" id="tweet" name="tweet"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="user">Select User</label>
+                        <select class="form-control" name="user">
+                            <?php
+                            foreach ($users as $username => $user) {
+                                if (!$user['create']) continue;
+                                echo "<option value='" . $username . "'>" . $username . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" class="form-control" name="password" id="password" placeholder="Password" />
+                    </div>
+                    <button name="specific_user" type="submit" class="btn btn-success">Create</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <form method="POST">
+                    <h4>Tweets for all</h4>
                     <div class="form-group">
                         <label for="tweet">Tweet</label>
                         <textarea type="text" class="form-control" id="tweet" name="tweet"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" class="form-control" name="password" id="password" placeholder="Password">
+                        <input type="password" class="form-control" name="password" id="password" placeholder="Password" />
                     </div>
-                    <button name="submit" type="submit" class="btn btn-success">Create</button>
+                    <button name="all_users" type="submit" class="btn btn-success">Create</button>
                 </form>
             </div>
         </div>

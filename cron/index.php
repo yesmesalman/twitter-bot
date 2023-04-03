@@ -43,9 +43,9 @@ foreach ($searches as $s) {
             if ($s['type'] == "likes_tweet" && $user['likes_tweet']) { // If search is type like and user is allowed to like
                 $response = $twitter->post('favorites/create', ['id' => $tweet->id]);
                 if (isset($response->favorited) && $response->favorited == 1) {
-                    writeLog("@" . $username . " Y ");
+                    writeLog("@" . $username . " [Ok] ");
                 } else {
-                    writeLog("@" . $username . " X ");
+                    writeLog("@" . $username . " [X] ");
                     break;
                 }
             }
@@ -53,9 +53,9 @@ foreach ($searches as $s) {
             if ($s['type'] == "hashtag_group" && $user['hashtag_group']) { // If search is type hashtag and user is allowed for it
                 $response = $twitter->post('statuses/retweet/' . $tweet->id);
                 if (isset($response->retweeted) && $response->retweeted == 1) {
-                    writeLog("@" . $username . " Y ");
+                    writeLog("@" . $username . " [Ok] ");
                 } else {
-                    writeLog("@" . $username . " X ");
+                    writeLog("@" . $username . " [X] ");
                 }
             }
         }
