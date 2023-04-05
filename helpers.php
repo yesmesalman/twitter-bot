@@ -41,3 +41,43 @@ function extractId($url) {
     
     return $tweet_id;
 }
+
+function getRandomNumber(){
+    return rand(1, 1000000000);
+}
+
+function uploadAttachments($name){
+    if(isset($_FILES[$name])) {
+        $uploadedFiles = array();
+        $extension = array("jpeg","jpg","png","gif");
+    
+        $path = getRoot()."/uploads/";
+
+        if (!file_exists($path)) {
+            mkdir($path, 0777, true);
+        } 
+        
+        foreach($_FILES[$name]['tmp_name'] as $key => $tmp_name){
+            $file_name = $_FILES[$name]['name'][$key];
+            $file_size = $_FILES[$name]['size'][$key];
+            $file_tmp = $_FILES[$name]['tmp_name'][$key];
+            $file_type = $_FILES[$name]['type'][$key];
+            $arr = explode('.', $file_name);
+            $file_ext = end($arr);
+
+            if(in_array($file_ext, $extension) === false){
+                return [];
+            }
+    
+            if($file_size > 2097152) {
+                return [];
+            }
+    
+            $fullPath = $path.getRandomNumber().".".$file_ext;
+            move_uploaded_file($file_tmp, $fullPath);
+            $uploadedFiles[] = $fullPath;
+        }
+    
+        return $uploadedFiles; 
+    }
+}

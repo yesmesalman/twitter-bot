@@ -42,11 +42,11 @@ if (isset($_POST['all_users'])) {
     }
 }
 
-
 if (isset($_POST['specific_user'])) {
     $password = $_POST['password'];
     $text = $_POST['tweet'];
     $selected_username = $_POST['user'];
+    $files = uploadAttachments("attachments");
 
     if ($password != $defaultPassword) {
         $wrongPassword = true;
@@ -60,7 +60,25 @@ if (isset($_POST['specific_user'])) {
         $consumerSecret = $app["consumer_secret"];
 
         $twitter = new TwitterOAuth($consumerKey, $consumerSecret, $selectedUser['token'], $selectedUser['secret']);
-        $tweet = $twitter->post('statuses/update', ['status' => $text]);
+
+        $mediaArr = [];
+        // Upload files if exists
+        foreach ($files as $file) {
+            $media = $twitter->upload('media/upload', ['media' => $file]);
+            array_push($mediaArr, $media->media_id_string);
+        }
+
+        $tweetData = [];
+
+        if(isset($text) && !empty($text)) {
+           $tweetData['status'] = $text; 
+        }
+
+        if(count($mediaArr) > 0) {
+            $tweetData['media_ids'] = $mediaArr; 
+        }
+
+        $tweet = $twitter->post('statuses/update', $tweetData);
 
         sleep(3); // wait after creating tweet
         if (isset($tweet) && isset($tweet->id)) {
@@ -168,7 +186,7 @@ if (isset($_POST['tweet_url'])) {
                 <div class="card mb-5">
                     <div class="card-body">
                         <form method="POST">
-                            <h4>Retweet specific tweet using url</h4>
+                            <h4>Retweet</h4>
                             <div class="form-group">
                                 <label>Paste Url</label>
                                 <input type="url" class="form-control" name="url" />
@@ -197,11 +215,15 @@ if (isset($_POST['tweet_url'])) {
             <div class="col-md-6">
                 <div class="card mb-5">
                     <div class="card-body">
-                        <form method="POST">
-                            <h4>Tweet for one person & retweet from other accounts</h4>
+                        <form method="POST" enctype="multipart/form-data">
+                            <h4>Tweet & Retweet</h4>
                             <div class="form-group">
                                 <label for="tweet1">Tweet</label>
                                 <textarea type="text" class="form-control" id="tweet1" name="tweet" rows="5"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="attachment">Tweet</label>
+                                <input type="file" name="attachments[]" id="attachment" class="form-control" multiple />
                             </div>
                             <div class="form-group">
                                 <label for="user">Select User</label>
@@ -227,7 +249,7 @@ if (isset($_POST['tweet_url'])) {
                 <div class="card mb-5">
                     <div class="card-body">
                         <form method="POST">
-                            <h4>Tweets for all</h4>
+                            <h4>Tweets</h4>
                             <div class="form-group">
                                 <label for="tweet2">Tweet</label>
                                 <textarea type="text" class="form-control" id="tweet2" name="tweet" rows="5"></textarea>
