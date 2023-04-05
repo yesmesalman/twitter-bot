@@ -38,6 +38,7 @@ foreach ($searches as $s) {
         }
 
         foreach ($users as $username => $user) {
+            sleep(3);
             $twitter = new TwitterOAuth($consumerKey, $consumerSecret, $user['token'], $user['secret']);
 
             if ($s['type'] == "likes_tweet" && $user['likes_tweet']) { // If search is type like and user is allowed to like
@@ -60,8 +61,6 @@ foreach ($searches as $s) {
             }
         }
     }
-
-    sleep(1);
 }
 
 

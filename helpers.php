@@ -33,3 +33,11 @@ function tweetUrl($id)
 {
     return "https://twitter.com/i/web/status/" . $id;
 }
+
+function extractId($url) {
+    $parts = parse_url($url);
+    $path = explode('/', $parts['path']);
+    $tweet_id = end($path);
+    
+    return $tweet_id;
+}
