@@ -47,6 +47,7 @@ if (isset($_POST['specific_user'])) {
     $text = $_POST['tweet'];
     $selected_username = $_POST['user'];
     $files = uploadAttachments("attachments");
+    $retweet = isset($_POST['retweet']) ? true : false;
 
     if ($password != $defaultPassword) {
         $wrongPassword = true;
@@ -80,30 +81,32 @@ if (isset($_POST['specific_user'])) {
 
         $tweet = $twitter->post('statuses/update', $tweetData);
 
-        sleep(3); // wait after creating tweet
-        if (isset($tweet) && isset($tweet->id)) {
-            writeLog("@" . $selected_username . " [Ok] ");
+        if ($retweet) {
+            sleep(3); // wait after creating tweet
+            if (isset($tweet) && isset($tweet->id)) {
+                writeLog("@" . $selected_username . " [Ok] ");
 
-            foreach ($users as $un => $u) {
-                if (!$u['create'] || $un == $selected_username) continue;
+                foreach ($users as $un => $u) {
+                    if (!$u['create'] || $un == $selected_username) continue;
 
-                $twitter = new TwitterOAuth($consumerKey, $consumerSecret, $u['token'], $u['secret']);
-                $response = $twitter->post('statuses/retweet/' . $tweet->id);
-                if (isset($response->retweeted) && $response->retweeted == 1) {
-                    writeLog("@" . $un . " retweeted [Ok] ");
-                } else {
-                    writeLog("@" . $un . " retweeted [X] ");
+                    $twitter = new TwitterOAuth($consumerKey, $consumerSecret, $u['token'], $u['secret']);
+                    $response = $twitter->post('statuses/retweet/' . $tweet->id);
+                    if (isset($response->retweeted) && $response->retweeted == 1) {
+                        writeLog("@" . $un . " retweeted [Ok] ");
+                    } else {
+                        writeLog("@" . $un . " retweeted [X] ");
+                    }
+
+                    $twitter = new TwitterOAuth($consumerKey, $consumerSecret, $u['token'], $u['secret']);
+                    $fav = $twitter->post('favorites/create', ['id' => $tweet->id]);
+                    if (isset($fav->favorited) && $fav->favorited == 1) {
+                        writeLog("@" . $un . " liked [Ok] ");
+                    } else {
+                        writeLog("@" . $un . " liked [X] ");
+                    }
+
+                    sleep(3); // wait after like and retweet after every user
                 }
-
-                $twitter = new TwitterOAuth($consumerKey, $consumerSecret, $u['token'], $u['secret']);
-                $fav = $twitter->post('favorites/create', ['id' => $tweet->id]);
-                if (isset($fav->favorited) && $fav->favorited == 1) {
-                    writeLog("@" . $un . " liked [Ok] ");
-                } else {
-                    writeLog("@" . $un . " liked [X] ");
-                }
-
-                sleep(3); // wait after like and retweet after every user
             }
         }
 
@@ -235,6 +238,12 @@ if (isset($_POST['tweet_url'])) {
                                     }
                                     ?>
                                 </select>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" value="1" name="retweet" id="retweet">
+                                <label class="form-check-label" for="retweet">
+                                    Retweet from other accounts?
+                                </label>
                             </div>
                             <div class="form-group">
                                 <label for="password1">Password</label>

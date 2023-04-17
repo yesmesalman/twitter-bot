@@ -1,5 +1,7 @@
 <?php
 
+set_time_limit(0);
+
 function getCurrentTime()
 {
     date_default_timezone_set("Asia/Karachi");
@@ -80,4 +82,15 @@ function uploadAttachments($name){
     
         return $uploadedFiles; 
     }
+}
+
+function cronShouldRun() {
+    // Every half of time
+    return rand(0, 1) >= 0.5;
+}
+
+function dd($e){
+    echo "<pre>";
+    print_r($e);
+    die;
 }
